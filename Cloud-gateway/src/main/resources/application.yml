@@ -1,0 +1,74 @@
+server:
+  port: 9191
+
+spring:
+  application:
+    name: API-GATEWAY
+  cloud:
+    gateway:
+      routes:
+        - id: INSURANCE-SERVICE
+          uri: lb://INSURANCE-SERVICE
+          predicates:
+            - Path=/insurances/**
+          filters:
+          - name: CircuitBreaker
+            args:
+             name: INSURANCE-SERVICE
+             fallbackuri: forward:/insuranceServiceFallBack
+              
+        - id: CUSTOMER-SERVICE
+          uri: lb://CUSTOMER-SERVICE
+          predicates:
+            - Path=/customers/**
+          filters:
+          - name: CircuitBreaker
+            args:
+             name: CUSTOMER-SERVICE
+             fallbackuri: forward:/customerServiceFallBack
+         
+            
+        - id: MANAGER-SERVICE
+          uri: lb://MANAGER-SERVICE
+          predicates:
+            - Path=/managers/**
+          filters:
+          - name: CircuitBreaker
+            args:
+             name: MANAGER-SERVICE
+             fallbackuri: forward:/managerServiceFallBack
+
+            
+        - id: PAYMENT-SERVICE
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/payments/**
+          filters:
+          - name: CircuitBreaker
+            args:
+             name: PAYMENT-SERVICE
+             fallbackuri: forward:/paymentServiceFallBack
+            
+hystrix:
+  command:
+    fallbackcmd:
+      execution:
+       isolation:
+         thread:
+          timeoutInMilliseconds: 4000
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: hystrix.stream
+
+  eureka:
+    client:
+      register-with-eureka: true
+      fetch-registry: true
+    service-url:
+    defaultZone: http://localhost:8761/eureka/
+    instance:
+    hostname: localhost
